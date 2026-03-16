@@ -38,7 +38,7 @@ local function DrawTriangle(
 	local function scanline(y: number, xs: number, xe: number)
 		local x1 = math.min(xs, xe)
 		local x2 = math.max(xs, xe)
-		local wd = math.floor(x2 - x1)
+		local wd = math.ceil(x2 - x1)
 
 		-- only draw a line when it actually can be visible
 		if wd > 0 then
@@ -57,31 +57,30 @@ local function DrawTriangle(
 	-- no drawing tris if the lowest and highest point have no height difference
 	if th == 0 then return end
 
-	-- calculations for how to draw a line
-	-- a scanline is drawn once each time until the difference of v3 - v1
-	for i = 0, th do
+	local ht = v2.Y - v1.Y
+	local hb = v3.Y - v2.Y
+
+	-- top half
+	for i = 0, ht - 1 do
 		local y = v1.Y + i
-		local f = i / th
-		local xs = v1.X + (v3.X - v1.X) * f
-		local xe = 0
+		local f1 = i / th
+		local f2 = i / ht
 
-		if i < (v2.Y - v1.Y) then
-			-- v1 -> v2 interp
-			local h = v2.Y - v1.Y
-			if h ~= 0 then
-				local t = i / h
-				xe = v1.X + (v2.X - v1.X) * t
-			end
-		else
-			-- v2 -> v3 interp
-			local h = v3.Y - v2.Y
-			if h ~= 0 then
-				local t = (i - (v2.Y - v1.Y)) / h
-				xe = v2.X + (v3.X - v2.X) * t
-			end
-		end
+		local xs = v1.X + (v3.X - v1.X) * f1
+		local xe = v1.X + (v2.X - v1.X) * f2
 
-		-- draw a line!!
+		scanline(y, xs, xe)
+	end
+
+	-- bottom half
+	for i = 0, hb do
+		local y = v2.Y + i
+		local f1 = (i + ht) / th
+		local f2 = if hb ~= 0 then i / hb else 0
+
+		local xs = v1.X + (v3.X - v1.X) * f1
+		local xe = v2.X + (v3.X - v2.X) * f2
+
 		scanline(y, xs, xe)
 	end
 end
